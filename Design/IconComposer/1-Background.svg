@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><defs>
+  <linearGradient id="bg" x1="100" y1="100" x2="924" y2="924" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#4B3BC4"/><stop offset="0.5" stop-color="#2450C8"/><stop offset="1" stop-color="#0A93A8"/>
+  </linearGradient>
+  <radialGradient id="glowA" cx="230" cy="180" r="600" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#B4BCFF" stop-opacity="0.55"/><stop offset="1" stop-color="#B4BCFF" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="glowB" cx="880" cy="900" r="520" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#2BF0D8" stop-opacity="0.6"/><stop offset="1" stop-color="#2BF0D8" stop-opacity="0"/>
+  </radialGradient></defs><g transform="scale(1.242718) translate(-100 -100)"><rect x="0" y="0" width="1024" height="1024" fill="url(#bg)"/><rect x="0" y="0" width="1024" height="1024" fill="url(#glowA)"/><rect x="0" y="0" width="1024" height="1024" fill="url(#glowB)"/></g></svg>

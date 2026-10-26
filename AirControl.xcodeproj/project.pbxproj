@@ -1,0 +1,270 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXFileReference section */
+		BBBBBBBBBBBBBBBBBBBB0001 /* Air Control.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Air Control.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BBBBBBBBBBBBBBBBBBBB0010 /* AirControl.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AirControl.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		BBBBBBBBBBBBBBBBBBBB0002 /* AirControl */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AirControl;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BBBBBBBBBBBBBBBBBBBB0003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BBBBBBBBBBBBBBBBBBBB0004 = {
+			isa = PBXGroup;
+			children = (
+				BBBBBBBBBBBBBBBBBBBB0002 /* AirControl */,
+				BBBBBBBBBBBBBBBBBBBB0010 /* AirControl.entitlements */,
+				BBBBBBBBBBBBBBBBBBBB0005 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BBBBBBBBBBBBBBBBBBBB0005 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BBBBBBBBBBBBBBBBBBBB0001 /* Air Control.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BBBBBBBBBBBBBBBBBBBB0006 /* AirControl */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BBBBBBBBBBBBBBBBBBBB000A /* Build configuration list for PBXNativeTarget "AirControl" */;
+			buildPhases = (
+				BBBBBBBBBBBBBBBBBBBB0007 /* Sources */,
+				BBBBBBBBBBBBBBBBBBBB0003 /* Frameworks */,
+				BBBBBBBBBBBBBBBBBBBB0008 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				BBBBBBBBBBBBBBBBBBBB0002 /* AirControl */,
+			);
+			name = AirControl;
+			packageProductDependencies = (
+			);
+			productName = AirControl;
+			productReference = BBBBBBBBBBBBBBBBBBBB0001 /* Air Control.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BBBBBBBBBBBBBBBBBBBB0009 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					BBBBBBBBBBBBBBBBBBBB0006 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+				};
+			};
+			buildConfigurationList = BBBBBBBBBBBBBBBBBBBB000B /* Build configuration list for PBXProject "AirControl" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = BBBBBBBBBBBBBBBBBBBB0004;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = BBBBBBBBBBBBBBBBBBBB0005 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BBBBBBBBBBBBBBBBBBBB0006 /* AirControl */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		BBBBBBBBBBBBBBBBBBBB0008 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BBBBBBBBBBBBBBBBBBBB0007 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		BBBBBBBBBBBBBBBBBBBB000C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BBBBBBBBBBBBBBBBBBBB000D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		BBBBBBBBBBBBBBBBBBBB000E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AirControl;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = AirControl.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BH8R3BX5WF;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Air Control";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Air Control watches your hand so you can move the pointer, click and scroll without touching your Mac. Video is processed on this Mac and never uploaded.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Air Control listens for “Hey Mac” and voice commands. Audio is processed on this Mac and never uploaded.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Voice commands are transcribed on this Mac so you can click, scroll, type and open apps by voice.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aircontrol.AirControl;
+				PRODUCT_NAME = "Air Control";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		BBBBBBBBBBBBBBBBBBBB000F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AirControl;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = AirControl.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BH8R3BX5WF;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Air Control";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Air Control watches your hand so you can move the pointer, click and scroll without touching your Mac. Video is processed on this Mac and never uploaded.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Air Control listens for “Hey Mac” and voice commands. Audio is processed on this Mac and never uploaded.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Voice commands are transcribed on this Mac so you can click, scroll, type and open apps by voice.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aircontrol.AirControl;
+				PRODUCT_NAME = "Air Control";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BBBBBBBBBBBBBBBBBBBB000A /* Build configuration list for PBXNativeTarget "AirControl" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BBBBBBBBBBBBBBBBBBBB000E /* Debug */,
+				BBBBBBBBBBBBBBBBBBBB000F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BBBBBBBBBBBBBBBBBBBB000B /* Build configuration list for PBXProject "AirControl" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BBBBBBBBBBBBBBBBBBBB000C /* Debug */,
+				BBBBBBBBBBBBBBBBBBBB000D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BBBBBBBBBBBBBBBBBBBB0009 /* Project object */;
+}
