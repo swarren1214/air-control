@@ -44,16 +44,20 @@ struct MenuBarLabel: View {
 
     var body: some View {
         Image(systemName: symbol)
-            .onChange(of: app.settingsRequest) { _, _ in
-                openWindow(id: "settings")
-                NSApp.activate()
-            }
+            .onChange(of: app.settingsRequest) { _, _ in openSettings() }
             .onAppear {
-                if app.settingsRequest > 0 {
-                    openWindow(id: "settings")
-                    NSApp.activate()
-                }
+                if app.settingsRequest > 0 { openSettings() }
             }
+    }
+
+    /// Opening a window adds items to the app's main menu. Doing that while AppKit is still building
+    /// the menu bar (this label appears during launch) trips an NSMenu assertion and kills the app,
+    /// so wait for the next turn of the run loop.
+    private func openSettings() {
+        DispatchQueue.main.async {
+            openWindow(id: "settings")
+            NSApp.activate()
+        }
     }
 
     private var symbol: String {
