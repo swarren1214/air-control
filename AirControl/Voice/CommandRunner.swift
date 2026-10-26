@@ -3,7 +3,7 @@ import CoreGraphics
 
 /// Carries out a `MacCommand` with real input events, Accessibility and NSWorkspace.
 final class CommandRunner {
-    private let driver: PointerDriver
+    let driver: PointerDriver
     /// Where the pointer is now (global, top-left origin).
     var pointer: () -> CGPoint = { Displays.mouseLocation }
     var toast: (String) -> Void = { _ in }
@@ -67,6 +67,8 @@ final class CommandRunner {
             setDictating(false)
         case .hideCursor:
             hideCursor()
+        case .system(let action):
+            perform(action)
         case .cancel:
             driver.stopMomentum()
             toast("Cancelled")

@@ -14,6 +14,10 @@ struct OverlayView: View {
             if let r = app.flashRect, r.intersects(display) {
                 FlashHighlight(rect: local(r))
             }
+            if app.windowMenu.isOpen, display.contains(app.windowMenu.center) {
+                WindowMenuView(display: display)
+                    .transition(.opacity)
+            }
             if app.cursor.phase != .hidden, display.contains(app.pointer) {
                 CursorView(display: display)
             }
@@ -101,6 +105,9 @@ struct CursorView: View {
         case .twoHand:
             d = 22
             tint = 0.22
+        case .gesture:
+            d = 20
+            tint = 0.32
         default:
             // Shrinks as the fingers close, and breathes a hair while you're just pointing.
             d = 26 - 10 * cursor.pinchAmount + CGFloat(sin(t * 2.4)) * 0.6
@@ -165,6 +172,10 @@ struct CursorView: View {
                 .position(s.center)
         case .twoHand:
             TwoHandIndicator(center: s.center, gestures: app.twoHands)
+        case .gesture(let pose):
+            HintPill(text: pose == .victory ? "✌️  ← Back · Forward →  ·  hold still to talk"
+                                            : "Three fingers  ← → Spaces  ·  ↑ Mission Control  ·  ↓ Windows")
+                .position(x: s.center.x, y: s.center.y + 34)
         default:
             EmptyView()
         }
@@ -179,6 +190,70 @@ struct CursorView: View {
                 .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
                 .position(x: s.center.x + s.size.width / 2 + 8, y: s.center.y + s.size.height / 2 + 6)
                 .transition(.scale.combined(with: .opacity))
+        }
+    }
+}
+
+/// A small label under the pointer explaining what the current pose can do.
+private struct HintPill: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .frame(height: 22)
+            .background(Capsule().fill(Color.black.opacity(0.6)))
+            .fixedSize()
+    }
+}
+
+/// ☝️ held still: a ring of glass buttons for the window under the pointer, which is outlined.
+/// The control in the direction of the pointer swells; pinch to do it.
+struct WindowMenuView: View {
+    @Environment(AppModel.self) private var app
+    let display: CGRect
+    @State private var shown = false
+
+    var body: some View {
+        let menu = app.windowMenu
+        let c = CGPoint(x: menu.center.x - display.minX, y: menu.center.y - display.minY)
+        ZStack(alignment: .topLeading) {
+            Color.clear
+            if let f = menu.windowFrame {
+                let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+                shape
+                    .fill(Color.accentColor.opacity(0.06))
+                    .overlay(shape.strokeBorder(Color.accentColor.opacity(0.85), lineWidth: 3))
+                    .frame(width: f.width, height: f.height)
+                    .position(x: f.midX - display.minX, y: f.midY - display.minY)
+                    .transition(.opacity)
+            }
+            ForEach(WindowAction.allCases) { action in
+                let selected = menu.selection == action
+                let a = Double(action.angle) * .pi / 180
+                let r = WindowMenu.radius * (shown ? 1 : 0.35)
+                ZStack {
+                    LiquidGlass(size: CGSize(width: 50, height: 50), radius: 25, tint: selected ? 0.5 : 0.14,
+                                lifted: selected)
+                    Image(systemName: action.symbol)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.55), radius: 1.5)
+                }
+                .scaleEffect(selected ? 1.22 : 1)
+                .position(x: c.x + r * CGFloat(cos(a)), y: c.y + r * CGFloat(sin(a)))
+                .animation(.spring(response: 0.28, dampingFraction: 0.55), value: selected)
+            }
+            HintPill(text: menu.selection?.title ?? "Point at an action, then pinch")
+                .position(x: c.x, y: c.y + WindowMenu.radius + 50)
+        }
+        .frame(width: display.width, height: display.height, alignment: .topLeading)
+        .opacity(shown ? 1 : 0)
+        .animation(.easeOut(duration: 0.15), value: menu.windowFrame)
+        .onAppear {
+            withAnimation(.spring(response: 0.38, dampingFraction: 0.6)) { shown = true }
         }
     }
 }

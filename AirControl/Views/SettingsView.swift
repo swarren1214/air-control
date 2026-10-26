@@ -41,6 +41,14 @@ struct SettingsView: View {
                 .disabled(!SystemCursor.canHide)
                 Toggle("Reverse scroll direction",
                        isOn: Binding(get: { app.reverseScroll }, set: { app.setReverseScroll($0) }))
+                Toggle(isOn: Binding(get: { app.fingerGestures }, set: { app.setFingerGestures($0) })) {
+                    Text("Finger swipes")
+                    Text("✌️ swipes back and forward, three fingers switch Spaces and open Mission Control, 👍 looks up the word under the pointer.")
+                }
+                Toggle(isOn: Binding(get: { app.windowMenuEnabled }, set: { app.setWindowMenuEnabled($0) })) {
+                    Text("Window menu")
+                    Text("Point with one finger and hold still: close, minimize, full-screen or tile the window under the pointer.")
+                }
                 Picker("Camera preview", selection: Binding(get: { app.previewMode }, set: { app.setPreviewMode($0) })) {
                     ForEach(PreviewMode.allCases) { Text($0.title).tag($0) }
                 }
@@ -67,6 +75,30 @@ struct SettingsView: View {
                 Text("Two hands")
             } footer: {
                 Text("Hold a pinch with your other hand to hold Shift: pinch-click with your pointer hand to select several things, or drag to keep proportions.")
+            }
+
+            Section("Every gesture") {
+                CommandRow(say: "✋ Raise an open palm", does: "Take the pointer")
+                CommandRow(say: "Move your hand", does: "Move the pointer")
+                CommandRow(say: "Pinch · pinch twice", does: "Click · double-click")
+                CommandRow(say: "Pinch and move", does: "Scroll, with momentum")
+                CommandRow(say: "Pinch and hold, let go", does: "Right-click")
+                CommandRow(say: "Pinch and hold, move", does: "Drag")
+                CommandRow(say: "✌️ swipe right · left", does: "Back · forward")
+                CommandRow(say: "✌️ swipe left at the right edge", does: "Notification Center")
+                CommandRow(say: "✌️ hold still", does: "Talk without “Hey Mac”")
+                CommandRow(say: "Three fingers swipe left · right", does: "Next · previous Space or full-screen app")
+                CommandRow(say: "Three fingers swipe up · down", does: "Mission Control · app windows")
+                CommandRow(say: "👍", does: "Look Up")
+                CommandRow(say: "☝️ hold still, aim, pinch", does: "Close, minimize, full screen, tile, fill")
+                CommandRow(say: "✊", does: "Put the pointer away")
+                CommandRow(say: "Both hands pinch, spread · close", does: "Zoom in · out")
+                CommandRow(say: "Both hands pinch, twist", does: "Rotate")
+                CommandRow(say: "Both hands pinch, move", does: "Pan")
+                CommandRow(say: "Both hands quick pinch", does: "Smart zoom")
+                CommandRow(say: "Other hand holds a pinch", does: "Hold Shift")
+                CommandRow(say: "Both palms swipe", does: "Spaces · Mission Control · app windows")
+                CommandRow(say: "Palms apart · together", does: "Show Desktop · Apps")
             }
 
             Section("Voice") {
@@ -97,6 +129,8 @@ struct SettingsView: View {
                 CommandRow(say: "start dictation … stop dictation", does: "Type everything you say")
                 CommandRow(say: "search for flights to Denver", does: "Spotlight")
                 CommandRow(say: "mission control · show desktop · next space", does: "Windows and spaces")
+                CommandRow(say: "tile left · tile right · maximize · minimize", does: "The front window")
+                CommandRow(say: "notification center · show apps · look up", does: "System")
                 Text("Anything else goes to Apple’s on-device model, which can see the buttons on screen — “hit the blue continue button”, “get me back to my email”.")
                     .font(.callout)
                     .foregroundStyle(.secondary)

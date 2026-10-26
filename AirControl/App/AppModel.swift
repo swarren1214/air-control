@@ -36,6 +36,7 @@ final class AppModel {
     let camera = CameraService()
     let cursor = HandCursor()
     let twoHands = TwoHandGestures()
+    let windowMenu = WindowMenu()
     let voice = VoiceController()
     let driver: PointerDriver
     let runner: CommandRunner
@@ -88,6 +89,8 @@ final class AppModel {
     private(set) var twoHanded = true
     private(set) var twoHandSwipes = true
     private(set) var zoomMode: TwoHandZoomMode = .trackpad
+    private(set) var fingerGestures = true
+    private(set) var windowMenuEnabled = true
     private(set) var requireLooking = true
     private(set) var snapping = true
     private(set) var hideSystemPointer = true
@@ -114,6 +117,8 @@ final class AppModel {
     /// Pointer minus hand position when a drag starts, so the dragged thing doesn't lurch.
     @ObservationIgnored private var dragOffset: CGPoint = .zero
     @ObservationIgnored private var started = false
+    /// A pinch that started while the window menu was open: it closes the menu and does nothing else.
+    @ObservationIgnored private var swallowedPinch = false
 
     private init() {
         let d = PointerDriver()
@@ -200,6 +205,11 @@ final class AppModel {
         let owner = attentive && accessibilityGranted ? pick.hand : nil
         cursor.ingest(owner, at: t)
         twoHands.update(owner: owner, partner: twoHanded ? pick.partner : nil, aspect: frame.aspect, cursor: cursor, at: t)
+        if windowMenuEnabled,
+           windowMenu.watch(pose: owner?.pose, pointer: pointer,
+                            canOpen: cursor.phase == .free && twoHands.phase == .idle, at: t) {
+            windowMenuOpened()
+        }
     }
 
     // MARK: Cursor → pointer
@@ -218,38 +228,122 @@ final class AppModel {
             guard let self else { return }
             self.snap = nil
             self.twoHands.cancel(cursor: self.cursor)
+            self.windowMenu.close()
             if self.driver.buttonDown { self.driver.mouseUp(at: self.pointer) }
             self.setPointerHidden(false)
         }
-        cursor.onTap = { [weak self] p in self?.click(at: p) }
+        cursor.onTap = { [weak self] p in
+            guard let self else { return }
+            if self.windowMenu.isOpen {
+                self.commitWindowMenu()
+                return
+            }
+            self.click(at: p)
+        }
         cursor.onRightClick = { [weak self] p in
-            self?.clickPulse += 1
-            self?.driver.rightClick(at: p)
+            guard let self else { return }
+            if self.windowMenu.isOpen {
+                self.windowMenu.close()
+                return
+            }
+            self.clickPulse += 1
+            self.driver.rightClick(at: p)
         }
         cursor.onDragBegan = { [weak self] p in
             guard let self else { return }
+            if self.windowMenu.isOpen {
+                self.windowMenu.close()
+                self.swallowedPinch = true
+                return
+            }
             self.snap = nil
             self.dragOffset = CGPoint(x: p.x - self.cursor.point.x, y: p.y - self.cursor.point.y)
             self.driver.mouseDown(at: p)
         }
         cursor.onDragEnded = { [weak self] _ in
             guard let self else { return }
+            if self.swallowedPinch {
+                self.swallowedPinch = false
+                return
+            }
             self.driver.mouseUp(at: self.pointer)
         }
         cursor.onScrollBegan = { [weak self] in
             guard let self else { return }
+            if self.windowMenu.isOpen {
+                self.windowMenu.close()
+                self.swallowedPinch = true
+                return
+            }
             self.driver.direction = self.reverseScroll ? -1 : 1
             self.driver.scrollBegan(at: self.pointer)
         }
-        cursor.onScroll = { [weak self] dx, dy in self?.driver.scroll(dx: dx, dy: dy) }
-        cursor.onScrollEnded = { [weak self] vx, vy in self?.driver.scrollEnded(vx: vx, vy: vy) }
+        cursor.onScroll = { [weak self] dx, dy in
+            guard let self, !self.swallowedPinch else { return }
+            self.driver.scroll(dx: dx, dy: dy)
+        }
+        cursor.onScrollEnded = { [weak self] vx, vy in
+            guard let self else { return }
+            if self.swallowedPinch {
+                self.swallowedPinch = false
+                return
+            }
+            self.driver.scrollEnded(vx: vx, vy: vy)
+        }
         cursor.onPose = { [weak self] pose in
             guard let self else { return }
-            if pose == .victory, self.voiceEnabled {
+            switch pose {
+            case .victory where self.voiceEnabled:
                 self.listenUntil = CACurrentMediaTime() + 6
                 self.showToast("Listening…")
+            case .thumbsUp where self.fingerGestures:
+                self.runner.perform(.lookUp, at: self.pointer)
+            default:
+                break
             }
         }
+        cursor.onSwipe = { [weak self] pose, direction in self?.fingerSwipe(pose, direction) }
+    }
+
+    // MARK: Finger swipes and the window menu
+
+    /// ✌️ swipes like two fingers on a trackpad; three fingers like three or four.
+    private func fingerSwipe(_ pose: HandPose, _ direction: GestureDirection) {
+        let action: SystemAction?
+        switch (pose, direction) {
+        case (.victory, .right): action = .back
+        case (.victory, .left):
+            // Two fingers swiping in from the right edge opens Notification Center.
+            let display = cursor.display
+            action = pointer.x > display.maxX - 90 ? .notificationCenter : .forward
+        case (.threeFingers, .left): action = .nextSpace
+        case (.threeFingers, .right): action = .previousSpace
+        case (.threeFingers, .up): action = .missionControl
+        case (.threeFingers, .down): action = .appWindows
+        default: action = nil
+        }
+        if let action { runner.perform(action, at: pointer) }
+    }
+
+    private func windowMenuOpened() {
+        snap = nil
+        let center = windowMenu.center
+        let front = NSWorkspace.shared.frontmostApplication?.processIdentifier
+        AX.queue.async { [weak self] in
+            let frame = CommandRunner.window(at: center, frontPID: front)?.frame
+            DispatchQueue.main.async { self?.windowMenu.setWindowFrame(frame) }
+        }
+    }
+
+    private func commitWindowMenu() {
+        guard let choice = windowMenu.selection else {
+            windowMenu.close()   // pinching in the middle dismisses
+            return
+        }
+        let center = windowMenu.center
+        windowMenu.close()
+        clickPulse += 1
+        runner.perform(choice.systemAction, at: center)
     }
 
     private func click(at p: CGPoint) {
@@ -308,13 +402,15 @@ final class AppModel {
         }
 
         // Snapping: ask what's under the hand ~20 times a second; drop a stale snap right away.
-        if snapping, accessibilityGranted, cursor.phase == .free {
+        if windowMenu.isOpen { windowMenu.track(pointer: pointer, at: now) }
+
+        if snapping, accessibilityGranted, cursor.phase == .free, !windowMenu.isOpen {
             if let s = snap, Snapper.distance(from: cursor.point, to: s.frame) > 30 { snap = nil }
             if now - lastSnapQuery > 0.05 {
                 lastSnapQuery = now
                 snapper.query(cursor.point)
             }
-        } else if snap != nil, cursor.phase == .dragging || !snapping {
+        } else if snap != nil, cursor.phase == .dragging || !snapping || windowMenu.isOpen {
             snap = nil
         }
     }
@@ -367,19 +463,29 @@ final class AppModel {
         }
         twoHands.onSwipe = { [weak self] direction in
             guard let self else { return }
-            let shortcut: Shortcut
+            let action: SystemAction
             switch direction {
-            case .left: shortcut = .nextSpace
-            case .right: shortcut = .previousSpace
-            case .up: shortcut = .missionControl
-            case .down: shortcut = .appWindows
+            case .left: action = .nextSpace
+            case .right: action = .previousSpace
+            case .up: action = .missionControl
+            case .down: action = .appWindows
+            case .apart: action = .showDesktop
+            case .together: action = .apps
             }
-            self.runner.run(.shortcut(shortcut))
+            self.runner.perform(action, at: self.pointer)
+        }
+        twoHands.onTap = { [weak self] in
+            guard let self else { return }
+            if self.zoomMode == .trackpad {
+                self.runner.perform(.smartZoom, at: self.pointer)
+            } else {
+                self.runner.run(.shortcut(.actualSize))
+            }
         }
     }
 
     private func snapResult(at p: CGPoint, _ target: SnapTarget?) {
-        guard cursor.phase == .free, snapping else { return }
+        guard cursor.phase == .free, snapping, !windowMenu.isOpen else { return }
         // Hysteresis: keep the current control until the hand clearly leaves it.
         if let current = snap, current != target,
            current.frame.insetBy(dx: -12, dy: -10).contains(cursor.point) {
@@ -618,6 +724,8 @@ final class AppModel {
         if d.object(forKey: "twoHanded") != nil { twoHanded = d.bool(forKey: "twoHanded") }
         if d.object(forKey: "twoHandSwipes") != nil { twoHandSwipes = d.bool(forKey: "twoHandSwipes") }
         if let s = d.string(forKey: "zoomMode"), let v = TwoHandZoomMode(rawValue: s) { zoomMode = v }
+        if d.object(forKey: "fingerGestures") != nil { fingerGestures = d.bool(forKey: "fingerGestures") }
+        if d.object(forKey: "windowMenu") != nil { windowMenuEnabled = d.bool(forKey: "windowMenu") }
         if d.object(forKey: "requireLooking") != nil { requireLooking = d.bool(forKey: "requireLooking") }
         if d.object(forKey: "snapping") != nil { snapping = d.bool(forKey: "snapping") }
         if d.object(forKey: "hideSystemPointer") != nil { hideSystemPointer = d.bool(forKey: "hideSystemPointer") }
@@ -630,6 +738,7 @@ final class AppModel {
         cursor.setPalmsPerScreen(TrackingSpeed.palmsPerScreen(trackingSpeed))
         selector.twoHanded = twoHanded
         twoHands.swipesEnabled = twoHandSwipes
+        cursor.fingerGestures = fingerGestures
     }
 
     private func save(_ value: Any?, _ key: String) {
@@ -677,6 +786,18 @@ final class AppModel {
         twoHandSwipes = on
         twoHands.swipesEnabled = on
         save(on, "twoHandSwipes")
+    }
+
+    func setFingerGestures(_ on: Bool) {
+        fingerGestures = on
+        cursor.fingerGestures = on
+        save(on, "fingerGestures")
+    }
+
+    func setWindowMenuEnabled(_ on: Bool) {
+        windowMenuEnabled = on
+        save(on, "windowMenu")
+        if !on { windowMenu.close() }
     }
 
     func setZoomMode(_ mode: TwoHandZoomMode) {
@@ -737,10 +858,14 @@ final class AppModel {
         case .dragging: return "Dragging"
         case .scrolling: return "Scrolling"
         case .twoHand: return twoHands.statusText
+        case .gesture(let pose):
+            return pose == .victory ? "✌️ Swipe for back or forward · hold still to talk"
+                                    : "Three fingers: swipe for Spaces, up for Mission Control"
         case .holding: return "Let go to right-click, or move to drag"
         case .acquiring: return "Hold your palm open…"
         case .hidden: return isAttentive ? "Raise an open palm to take control" : (face == nil ? "No one in view" : "Look at the screen")
         default:
+            if windowMenu.isOpen { return windowMenu.selection?.title ?? "Window menu: point at an action, then pinch" }
             if twoHands.phase == .modifier { return "Shift held by your other hand" }
             return snap?.label.map { "On “\($0)”" } ?? "Tracking your hand"
         }

@@ -240,6 +240,7 @@ extension HandPose {
         case .fist: return "Fist"
         case .thumbsUp: return "Thumbs up"
         case .victory: return "Victory"
+        case .threeFingers: return "Three fingers"
         case .pointing: return "Pointing"
         case .other: return "Hand"
         }

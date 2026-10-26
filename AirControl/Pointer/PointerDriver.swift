@@ -88,7 +88,7 @@ final class PointerDriver {
         case began = 1, changed = 2, ended = 4
     }
     private enum GestureSubtype: Int64 {
-        case rotate = 5, magnify = 8, begin = 61, end = 62
+        case rotate = 5, magnify = 8, smartMagnify = 22, begin = 61, end = 62
     }
     private static let gestureEventType = CGEventType(rawValue: 29)          // NSEventTypeGesture
     private static let gestureSubtypeField = CGEventField(rawValue: 110)
@@ -109,6 +109,13 @@ final class PointerDriver {
         postGesture(.rotate, phase: phase, at: p) { e in
             if let f = Self.rotationField { e.setDoubleValueField(f, value: Double(degrees)) }
         }
+    }
+
+    /// Two-finger double tap: zoom in on what's under the pointer, or back out.
+    func smartMagnify(at p: CGPoint) {
+        makeGesture(.begin, at: p)?.post(tap: .cghidEventTap)
+        makeGesture(.smartMagnify, at: p)?.post(tap: .cghidEventTap)
+        makeGesture(.end, at: p)?.post(tap: .cghidEventTap)
     }
 
     private func postGesture(_ subtype: GestureSubtype, phase: GesturePhase, at p: CGPoint, configure: (CGEvent) -> Void) {

@@ -48,7 +48,7 @@ enum HandJoint: CaseIterable, Hashable {
 }
 
 enum HandPose: String {
-    case none, openPalm, fist, thumbsUp, victory, pointing, other
+    case none, openPalm, fist, thumbsUp, victory, threeFingers, pointing, other
 }
 
 /// Left or right hand, as Vision judges it. Only compared between two hands in the same frame,
@@ -295,6 +295,7 @@ final class HandPoseAnalyzer {
             return thumbOut ? .other : .fist
         }
         if index && middle && !ring && !little { return .victory }
+        if index && middle && ring && !little { return .threeFingers }
         if index && !middle && !ring && !little { return .pointing }
         return .other
     }

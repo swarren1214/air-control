@@ -24,6 +24,9 @@ enum TwoHandZoomMode: String, CaseIterable, Identifiable {
 
 enum TwoHandSwipe {
     case left, right, up, down
+    /// Open palms pulled apart (Show Desktop) or pushed together (Apps), like spreading or pinching
+    /// thumb and three fingers on a trackpad.
+    case apart, together
 }
 
 /// Gestures that need both hands, layered on top of the one-hand pointer:
@@ -35,6 +38,8 @@ enum TwoHandSwipe {
 ///   selection and drags keep proportions or snap to angles
 /// - swipe both hands left / right → next / previous Space; up → Mission Control; down → app windows
 ///   (the four-finger trackpad swipes)
+/// - pull open palms apart → Show Desktop; push them together → Apps
+/// - a quick pinch-and-release with both hands → smart zoom (the two-finger double tap)
 ///
 /// Zoom, rotate and pan each wait for a clear movement before they kick in, the way a trackpad
 /// does, so a zoom doesn't accidentally rotate a shape and a rotation doesn't pan the canvas.
@@ -97,6 +102,8 @@ final class TwoHandGestures {
     @ObservationIgnored var onPanEnded: ((CGFloat, CGFloat) -> Void)?
     @ObservationIgnored var onModifier: ((Bool) -> Void)?
     @ObservationIgnored var onSwipe: ((TwoHandSwipe) -> Void)?
+    /// Both hands pinched and released quickly without moving.
+    @ObservationIgnored var onTap: (() -> Void)?
 
     // MARK: Private
     @ObservationIgnored private var ownerPinch = PinchLatch()
@@ -106,6 +113,8 @@ final class TwoHandGestures {
     /// After a gesture, nothing new starts until both hands have opened.
     @ObservationIgnored private var quietUntilOpen = false
     @ObservationIgnored private var aspect: CGFloat = 16.0 / 9.0
+    @ObservationIgnored private var now: TimeInterval = 0
+    @ObservationIgnored private var beganAt: TimeInterval = 0
 
     @ObservationIgnored private var startLength: CGFloat = 1
     @ObservationIgnored private var startAngle: CGFloat = 0
@@ -132,6 +141,7 @@ final class TwoHandGestures {
     /// when the cursor shouldn't respond (looking away, no permission).
     func update(owner: HandFrame?, partner: HandFrame?, aspect: CGFloat, cursor: HandCursor, at t: TimeInterval) {
         self.aspect = aspect
+        now = t
         guard let owner, cursor.isActive else {
             cancel(cursor: cursor)
             return
@@ -223,6 +233,7 @@ final class TwoHandGestures {
 
     private func begin(_ owner: HandFrame, _ other: HandFrame, cursor: HandCursor, at t: TimeInterval) {
         phase = .manipulating
+        beganAt = t
         zooming = false
         rotating = false
         panning = false
@@ -322,6 +333,7 @@ final class TwoHandGestures {
         guard phase == .manipulating else { return }
         if zooming { onZoomEnded?() }
         if rotating { onRotateEnded?() }
+        let wasTap = !zooming && !rotating && !panning && now - beganAt < 0.4
         if panning {
             var v = CGPoint.zero
             if let first = panSamples.first, let last = panSamples.last, last.t > first.t {
@@ -337,6 +349,7 @@ final class TwoHandGestures {
         phase = .idle
         quietUntilOpen = true
         cursor.endTwoHand()
+        if wasTap { onTap?() }
     }
 
     // MARK: Swipes
@@ -362,8 +375,19 @@ final class TwoHandGestures {
         let la = hypot(ma.x, ma.y)
         let lb = hypot(mb.x, mb.y)
         guard la > swipeTravel, lb > swipeTravel, la / dt > swipeSpeed, lb / dt > swipeSpeed else { return }
-        // Both hands going the same way — not clapping, not pulling apart.
-        guard (ma.x * mb.x + ma.y * mb.y) / (la * lb) > 0.8 else { return }
+        let cosine = (ma.x * mb.x + ma.y * mb.y) / (la * lb)
+        if cosine < -0.6 {
+            // Opposite directions: pulling apart or pushing together.
+            let before = hypot((first.b.x - first.a.x) * aspect, first.b.y - first.a.y) / palm
+            let after = hypot((last.b.x - last.a.x) * aspect, last.b.y - last.a.y) / palm
+            guard abs(after - before) > swipeTravel * 1.5 else { return }
+            lastSwipe = t
+            swipeSamples.removeAll()
+            onSwipe?(after > before ? .apart : .together)
+            return
+        }
+        // Both hands going the same way.
+        guard cosine > 0.8 else { return }
 
         let m = CGPoint(x: (ma.x + mb.x) / 2, y: (ma.y + mb.y) / 2)
         let direction: TwoHandSwipe

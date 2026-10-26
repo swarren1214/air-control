@@ -35,8 +35,16 @@ installs the app in `/Applications`. Run it with `--help` for options and the on
 | Pinch | Click · pinch twice quickly to double-click |
 | Pinch and move | Scroll, like dragging content on a trackpad; flick for momentum |
 | Pinch and hold (ring fills) | Let go → right-click · move → drag (windows, files, text selection) |
-| ✌️ | Talk without "Hey Mac" for 6 seconds |
+| ✌️ swipe right / left | Back / forward (two-finger swipe between pages) |
+| ✌️ swipe left at the screen's right edge | Notification Center |
+| ✌️ held still | Talk without "Hey Mac" for 6 seconds |
+| Three fingers swipe left / right | Next / previous Space or full-screen app |
+| Three fingers swipe up / down | Mission Control / app windows (App Exposé) |
+| 👍 | Look Up the word under the pointer (force click) |
+| ☝️ held still | Window menu: aim at Close, Minimize, Full Screen, Tile Left/Right or Fill, then pinch |
 | ✊ | Put the pointer away |
+
+While ✌️ or three fingers are up, the pointer waits in place so a swipe doesn't drag it along.
 
 ### Two hands
 
@@ -51,6 +59,8 @@ never someone else's.
 | Hold a pinch with your other hand | Holds ⇧ Shift: pinch-click to add to a selection, drag to keep proportions |
 | Swipe both hands left / right | Next / previous Space |
 | Swipe both hands up / down | Mission Control / app windows |
+| Pull open palms apart / push together | Show Desktop / Apps (Launchpad) |
+| Quick pinch-and-release with both hands | Smart zoom (two-finger double tap) |
 
 Zoom, rotate and pan each wait for a clear movement before they start, so zooming doesn't nudge a
 shape's rotation. If an app ignores the synthesized trackpad pinch, switch **Zoom with** in Settings
@@ -80,6 +90,8 @@ Say **"Hey Mac"** then a command. While your hand is up (or after ✌️), just 
 - `copy` · `paste` · `undo` · `select all` · `save` · `find invoice`
 - `type see you at 5` · `press command shift T` · `escape` · `page down`
 - `start dictation` … `stop dictation` — everything in between is typed (`new line`, `scratch that`)
+- `tile left` · `tile right` · `maximize` · `minimize` · `full screen` · `close window`
+- `notification center` · `show apps` · `look up` · `smart zoom`
 - `search for flights to Denver` (Spotlight) · `mission control` · `show desktop` · `next space`
 - Anything else goes to the on-device model, which is given the app, window title and the labels of
   the controls on screen: "hit the blue continue button", "get me back to my email".
@@ -93,7 +105,7 @@ Dock show what the mic hears and what happened.
 | Folder | What |
 | --- | --- |
 | `Hands/` | Camera, Vision analysis (hands, head pose, lips), hand ownership, attention, lip-movement detector |
-| `Pointer/` | `HandCursor` (hand → pointer, pinch state machine), `TwoHandGestures` (zoom, rotate, pan, Shift, swipes), `PointerDriver` (CGEvents, scroll phases, momentum, trackpad pinch/rotate, typing), `AXElement` (snapping, click-by-name), `SystemCursor` |
+| `Pointer/` | `HandCursor` (hand → pointer, pinch state machine, finger swipes), `WindowMenu`, `SystemActions` (pages, Spaces, windows via Accessibility), `TwoHandGestures` (zoom, rotate, pan, Shift, swipes), `PointerDriver` (CGEvents, scroll phases, momentum, trackpad pinch/rotate, typing), `AXElement` (snapping, click-by-name), `SystemCursor` |
 | `Voice/` | `VoiceController` (wake phrase, open mic, dictation), `MacCommandParser`, `MacIntentInterpreter` (Foundation Models), `CommandRunner`, `AppDirectory` |
 | `Overlay/` | Click-through panels that draw the glass pointer (`LiquidGlass`, `GlassBlob` springs), captions and toasts; the floating camera preview |
 | `Views/` | Menu bar panel and Settings |
@@ -118,7 +130,9 @@ Dock show what the mic hears and what happened.
 ## Known limits
 
 - One display at a time: the pointer stays on the display it started on.
-- Trackpad pinch and rotate are synthesized with undocumented gesture event fields. Most native and
+- Window actions use Accessibility on the window under the pointer; a few apps' windows refuse to
+  be resized or tiled. Notification Center is opened by pressing the menu bar clock.
+- Trackpad pinch, rotate and smart zoom are synthesized with undocumented gesture event fields. Most native and
   web apps accept them; for any that don't, use the ⌘ + scroll or ⌘+ / ⌘− zoom setting.
 - Two-hand gestures need both hands in the camera's view — sit back a little or use a wider camera.
 - Snapping only sees apps that expose Accessibility info (nearly all native apps; Chrome and

@@ -61,11 +61,13 @@ struct MenuView: View {
                 GestureRow(symbol: "hand.pinch", text: "Pinch to click · twice to double-click")
                 GestureRow(symbol: "arrow.up.and.down", text: "Pinch and move to scroll")
                 GestureRow(symbol: "circle.dashed", text: "Pinch and hold: let go to right-click, or move to drag")
-                GestureRow(symbol: "hand.raised.fingers.spread", text: "✌️ to talk without “Hey Mac”, ✊ to stop")
+                GestureRow(symbol: "arrow.left.arrow.right", text: "✌️ swipe for back / forward, hold still to talk")
+                GestureRow(symbol: "rectangle.split.3x1", text: "Three fingers: swipe Spaces, ↑ Mission Control")
+                GestureRow(symbol: "macwindow", text: "☝️ hold still for the window menu · ✊ to stop")
                 if app.twoHanded {
                     GestureRow(symbol: "arrow.up.left.and.arrow.down.right", text: "Pinch both hands: spread to zoom, twist to rotate, move to pan")
                     GestureRow(symbol: "shift", text: "Hold a pinch with your other hand for Shift")
-                    GestureRow(symbol: "rectangle.split.3x1", text: "Swipe both hands to change Space")
+                    GestureRow(symbol: "rectangle.expand.vertical", text: "Palms apart for Desktop, together for Apps")
                 }
             }
             .font(.callout)

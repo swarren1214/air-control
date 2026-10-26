@@ -28,6 +28,10 @@ enum TrackingSpeed {
     }
 }
 
+enum GestureDirection {
+    case left, right, up, down
+}
+
 enum HandCursorPhase: Equatable {
     case hidden
     /// Open palm seen; the cursor appears once this reaches 1.
@@ -45,6 +49,8 @@ enum HandCursorPhase: Equatable {
     case coasting
     /// Both hands pinched: `TwoHandGestures` is zooming, rotating or panning; the pointer stays put.
     case twoHand
+    /// ✌️ or three fingers up: the pointer waits while the hand swipes (pages, Spaces, Mission Control).
+    case gesture(HandPose)
 }
 
 /// Turns hand frames into a Mac pointer, the way the iPadOS pointer turns a trackpad into one:
@@ -82,6 +88,11 @@ final class HandCursor {
     var closeRangeTravel: CGFloat = 0.5
     var closePalm: CGFloat = 0.30
     var farPalm: CGFloat = 0.10
+    /// ✌️ and three-finger swipes. Off: those poses move the pointer like any other.
+    var fingerGestures = true
+    /// A swipe: this many palm lengths of travel, at least this fast (palm lengths per second).
+    var swipeTravel: CGFloat = 1.3
+    var swipeSpeed: CGFloat = 4.5
 
     // MARK: Observable state
     private(set) var phase: HandCursorPhase = .hidden
@@ -122,6 +133,8 @@ final class HandCursor {
     /// Release velocity in points per second.
     @ObservationIgnored var onScrollEnded: ((CGFloat, CGFloat) -> Void)?
     @ObservationIgnored var onPose: ((HandPose) -> Void)?
+    /// A ✌️ or three-finger swipe.
+    @ObservationIgnored var onSwipe: ((HandPose, GestureDirection) -> Void)?
     @ObservationIgnored var onDeactivate: (() -> Void)?
 
     // MARK: Private
@@ -149,6 +162,15 @@ final class HandCursor {
     @ObservationIgnored private var firedPose: HandPose = .none
     /// After a two-hand gesture, ignore the pinch that drove it until the fingers open.
     @ObservationIgnored private var needsOpen = false
+    @ObservationIgnored private var gestureFrames = 0
+    @ObservationIgnored private var gestureSince: TimeInterval = 0
+    @ObservationIgnored private var gestureSeen: TimeInterval = 0
+    @ObservationIgnored private var gestureOrigin: CGPoint = .zero
+    @ObservationIgnored private var gestureSamples: [(t: TimeInterval, p: CGPoint)] = []
+    @ObservationIgnored private var lastSwipeAt: TimeInterval = -.infinity
+    @ObservationIgnored private var talkFired = false
+    /// The hand was lost mid-gesture: when it's back, pick up where the pointer waited.
+    @ObservationIgnored private var reanchorOnReturn = false
 
     // MARK: Input
 
@@ -166,7 +188,15 @@ final class HandCursor {
             return
         }
 
-        if phase == .coasting { setPhase(.free) }
+        if phase == .coasting {
+            setPhase(.free)
+            if reanchorOnReturn {
+                reanchorOnReturn = false
+                anchorRegion(hand: frame.anchor, at: point, palm: palmEstimate)
+                fx.reset()
+                fy.reset()
+            }
+        }
         if phase == .twoHand {
             // Both hands are working the content; the pointer waits where the pinch started.
             lastAnchor = frame.anchor
@@ -178,6 +208,10 @@ final class HandCursor {
             if abs(on - pinchOn) > 0.005 { pinchOn = on }
             trackPose(frame.pose, at: t)
             guard isActive else { return }   // a fist puts the cursor away
+            if fingerGestures, handleGesture(frame, at: t) {
+                lastAnchor = frame.anchor
+                return
+            }
         }
         lastAnchor = frame.anchor
         let mapped = map(frame.anchor, at: t)
@@ -201,6 +235,9 @@ final class HandCursor {
         stablePose = .none
         firedPose = .none
         needsOpen = false
+        gestureFrames = 0
+        gestureSamples.removeAll()
+        reanchorOnReturn = false
         fx.reset()
         fy.reset()
         if wasActive { onDeactivate?() }
@@ -243,6 +280,10 @@ final class HandCursor {
         // Coast briefly so a hand passing out of frame for a moment doesn't drop the cursor.
         if lostSince == nil {
             lostSince = t
+            if case .gesture = phase {
+                gestureSamples.removeAll()
+                reanchorOnReturn = true
+            }
             endTwoHand()
             endInteraction()
             setPhase(.coasting)
@@ -280,12 +321,97 @@ final class HandCursor {
             firedPose = pose
             onPose?(.fist)
             reset()
-        case .victory, .thumbsUp:
+        case .thumbsUp:
+            firedPose = pose
+            onPose?(pose)
+        case .victory where !fingerGestures:
+            // With finger gestures on, ✌️ talks only when held still (see `handleGesture`).
             firedPose = pose
             onPose?(pose)
         default:
             break
         }
+    }
+
+    // MARK: Finger gestures
+
+    /// ✌️ or three fingers: hold the pose and the pointer waits; swipe to fire. Like two- and
+    /// three-finger swipes on a trackpad. Returns true while the hand is in gesture mode (the
+    /// pointer and pinch are left alone).
+    private func handleGesture(_ frame: HandFrame, at t: TimeInterval) -> Bool {
+        let pose = frame.pose
+        let isGesturePose = pose == .victory || pose == .threeFingers
+        guard case .gesture(let mode) = phase else {
+            guard phase == .free else {
+                gestureFrames = 0
+                return false
+            }
+            gestureFrames = isGesturePose ? gestureFrames + 1 : 0
+            guard gestureFrames >= 3 else { return false }
+            gestureFrames = 0
+            gestureSince = t
+            gestureSeen = t
+            gestureOrigin = frame.anchor
+            gestureSamples = [(t: t, p: frame.anchor)]
+            talkFired = false
+            setPhase(.gesture(pose))
+            return true
+        }
+
+        if isGesturePose {
+            gestureSeen = t
+            // Fingers settle in the first moment: let ✌️ become three fingers or back.
+            if pose != mode, t - gestureSince < 0.35 { setPhase(.gesture(pose)) }
+        } else if pose == .openPalm || pose == .fist || pose == .pointing || t - gestureSeen > 0.25 {
+            // Motion blur mid-swipe often reads as "other"; only a clear new pose ends the gesture.
+            exitGesture(frame)
+            return false
+        }
+
+        let current: HandPose
+        if case .gesture(let m) = phase { current = m } else { current = mode }
+        let palm = max(palmEstimate, 0.01)
+
+        gestureSamples.append((t: t, p: frame.anchor))
+        gestureSamples.removeAll { t - $0.t > 0.3 }
+        if t - lastSwipeAt > 0.7, let first = gestureSamples.first, let last = gestureSamples.last, last.t - first.t > 0.06 {
+            let dx = (last.p.x - first.p.x) * frameAspect / palm
+            let dy = (last.p.y - first.p.y) / palm
+            let distance = hypot(dx, dy)
+            if distance > swipeTravel, distance / CGFloat(last.t - first.t) > swipeSpeed {
+                var direction: GestureDirection?
+                if abs(dx) > abs(dy) * 1.3 {
+                    direction = dx < 0 ? .left : .right
+                } else if abs(dy) > abs(dx) * 1.3 {
+                    direction = dy < 0 ? .up : .down
+                }
+                if let direction {
+                    lastSwipeAt = t
+                    gestureSamples.removeAll()
+                    talkFired = true   // a swipe isn't a request to talk
+                    onSwipe?(current, direction)
+                }
+            }
+        }
+
+        // ✌️ held still: talk without "Hey Mac".
+        if current == .victory, !talkFired, t - gestureSince >= 0.45 {
+            let drift = hypot((frame.anchor.x - gestureOrigin.x) * frameAspect, frame.anchor.y - gestureOrigin.y) / palm
+            if drift < 0.6 {
+                talkFired = true
+                onPose?(.victory)
+            }
+        }
+        return true
+    }
+
+    private func exitGesture(_ frame: HandFrame) {
+        // Pick up where the pointer waited, so it doesn't jump to wherever the hand ended up.
+        anchorRegion(hand: frame.anchor, at: point, palm: palmEstimate)
+        fx.reset()
+        fy.reset()
+        gestureSamples.removeAll()
+        setPhase(.free)
     }
 
     // MARK: Pinch

@@ -90,6 +90,29 @@ struct AXElement {
         AXUIElementPerformAction(ref, kAXPressAction as CFString) == .success
     }
 
+    @discardableResult
+    func perform(_ action: String) -> Bool {
+        AXUIElementPerformAction(ref, action as CFString) == .success
+    }
+
+    @discardableResult
+    func set(_ name: String, _ value: CFTypeRef) -> Bool {
+        AXUIElementSetAttributeValue(ref, name as CFString, value) == .success
+    }
+
+    /// Moves and resizes a window (global, top-left origin). Position is set again after the size,
+    /// because some apps nudge a window back on screen while it's being resized.
+    @discardableResult
+    func setFrame(_ r: CGRect) -> Bool {
+        var origin = r.origin
+        var size = r.size
+        guard let pv = AXValueCreate(.cgPoint, &origin), let sv = AXValueCreate(.cgSize, &size) else { return false }
+        let moved = set(kAXPositionAttribute, pv)
+        let sized = set(kAXSizeAttribute, sv)
+        set(kAXPositionAttribute, pv)
+        return moved || sized
+    }
+
     static func at(_ point: CGPoint) -> AXElement? {
         var found: AXUIElement?
         guard AXUIElementCopyElementAtPosition(systemWide.ref, Float(point.x), Float(point.y), &found) == .success,

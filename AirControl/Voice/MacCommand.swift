@@ -109,6 +109,8 @@ enum MacCommand: Equatable {
     case startDictation
     case stopDictation
     case hideCursor
+    /// Swipes, Look Up, window tiling… (see `SystemAction`).
+    case system(SystemAction)
     case cancel
     case unknown
 
@@ -125,6 +127,8 @@ enum MacCommand: Equatable {
         case let (.scroll(d1, p1), .scroll(d2, p2)):
             return d1 == d2 && p1 == p2
         case let (.shortcut(x), .shortcut(y)):
+            return x == y
+        case let (.system(x), .system(y)):
             return x == y
         case let (.pressKey(k1, f1, _), .pressKey(k2, f2, _)):
             return k1 == k2 && f1 == f2
@@ -182,6 +186,21 @@ enum MacCommandParser {
             "quit this": .quitApp, "switch apps": .switchApp, "switch app": .switchApp, "last app": .switchApp
         ]
         if let sc = shortcuts[s] { return .shortcut(sc) }
+
+        let system: [String: SystemAction] = [
+            "tile left": .tileLeft, "tile window left": .tileLeft, "move window left": .tileLeft,
+            "snap left": .tileLeft, "window left": .tileLeft, "left half": .tileLeft,
+            "tile right": .tileRight, "tile window right": .tileRight, "move window right": .tileRight,
+            "snap right": .tileRight, "window right": .tileRight, "right half": .tileRight,
+            "fill window": .fillWindow, "fill screen": .fillWindow, "fill the screen": .fillWindow,
+            "maximize": .fillWindow, "maximize window": .fillWindow, "maximize this": .fillWindow,
+            "notification center": .notificationCenter, "notifications": .notificationCenter,
+            "show notifications": .notificationCenter, "open notification center": .notificationCenter,
+            "show apps": .apps, "apps": .apps, "launchpad": .apps, "show all apps": .apps, "open launchpad": .apps,
+            "look up": .lookUp, "look it up": .lookUp, "look this up": .lookUp, "look that up": .lookUp,
+            "define this": .lookUp, "define that": .lookUp, "smart zoom": .smartZoom
+        ]
+        if let action = system[s] { return .system(action) }
 
         // Clicking.
         if ["click", "click it", "click that", "click this", "click here", "tap", "left click", "select", "select it", "select that", "press it"].contains(s) { return .click }
