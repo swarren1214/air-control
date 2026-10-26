@@ -19,6 +19,13 @@ Built from the same hand-tracking and voice engine as the hands-free KDS prototy
 4. For voice, on-device English dictation must be installed (System Settings → Keyboard → Dictation).
    Natural-language commands need Apple Intelligence turned on; without it the built-in commands still work.
 
+## Release build
+
+`scripts/release.sh` archives a Release build, signs it with Developer ID, notarizes it, and wraps it
+in `dist/AirControl-<version>.dmg`, a signed and notarized drag-to-Applications disk image. It also
+installs the app in `/Applications`. Run it with `--help` for options and the one-time setup
+(Developer ID certificate, `notarytool` credentials). The install window's art lives in `Design/DMG/`.
+
 ## Hand
 
 | Gesture | Does |

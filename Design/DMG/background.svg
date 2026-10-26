@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F7F6FF"/>
+      <stop offset="1" stop-color="#EAF6FA"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="90" cy="40" r="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8F86F0" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#8F86F0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="600" cy="400" r="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2BD9C8" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#2BD9C8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="air" x1="0" y1="0" x2="640" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4B3BC4" stop-opacity="0"/>
+      <stop offset="0.3" stop-color="#4B5BD8" stop-opacity="0.16"/>
+      <stop offset="0.7" stop-color="#0A93A8" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#0A93A8" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="arrow" x1="262" y1="0" x2="378" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5B4BD6"/>
+      <stop offset="1" stop-color="#1497B0"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="400" fill="url(#bg)"/>
+  <rect width="640" height="400" fill="url(#glowA)"/>
+  <rect width="640" height="400" fill="url(#glowB)"/>
+  <path d="M -20 300 C 140 250, 230 330, 380 280 S 560 220, 660 250" fill="none" stroke="url(#air)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M -20 340 C 160 300, 260 370, 420 330 S 580 290, 660 310" fill="none" stroke="url(#air)" stroke-width="9" stroke-linecap="round"/>
+  <path d="M -20 80 C 150 50, 260 110, 400 70 S 560 30, 660 50" fill="none" stroke="url(#air)" stroke-width="7" stroke-linecap="round"/>
+  <!-- drag arrow -->
+  <g opacity="0.85">
+    <path d="M 266 186 C 300 172, 336 172, 362 182" fill="none" stroke="url(#arrow)" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 11"/>
+    <path d="M 352 168 L 376 186 L 350 200" fill="none" stroke="url(#arrow)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
